@@ -93,6 +93,10 @@ QNetworkAccessManager *KDSoapClientInterfacePrivate::accessManager()
 QNetworkRequest KDSoapClientInterfacePrivate::prepareRequest(const QString &method, const QString &action)
 {
     QNetworkRequest request(QUrl(this->m_endPoint));
+	
+    for (QList<QPair<QNetworkRequest::Attribute, QVariant> >::const_iterator it = m_requestAttributes.constBegin(); it != m_requestAttributes.constEnd(); ++it) {
+        request.setAttribute((*it).first, (*it).second);
+    }
 
     // The soap action seems to be namespace + method in most cases, but not always
     // (e.g. urn:GoogleSearchAction for google).
@@ -105,8 +109,7 @@ QNetworkRequest KDSoapClientInterfacePrivate::prepareRequest(const QString &meth
         }
         soapAction += method;
     }
-    //qDebug() << "soapAction=" << soapAction;
-
+	
     QString soapHeader;
     if (m_version == KDSoapClientInterface::SOAP1_1) {
         soapHeader += QString::fromLatin1("text/xml;charset=utf-8");
@@ -116,14 +119,6 @@ QNetworkRequest KDSoapClientInterfacePrivate::prepareRequest(const QString &meth
     }
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, soapHeader.toUtf8());
-
-    // FIXME need to find out which version of Qt this is no longer necessary
-    // without that the server might respond with gzip compressed data and
-    // Qt 4.6.2 fails to decode that properly
-    //
-    // happens with retrieval calls in against SugarCRM 5.5.1 running on Apache 2.2.15
-    // when the response seems to reach a certain size threshold
-    request.setRawHeader("Accept-Encoding", "compress");
 
     for (QMap<QByteArray, QByteArray>::const_iterator it = m_httpHeaders.constBegin(); it != m_httpHeaders.constEnd(); ++it) {
         request.setRawHeader(it.key(), it.value());
@@ -243,6 +238,11 @@ void KDSoapClientInterfacePrivate::setupReply(QNetworkReply *reply)
     }
 }
 
+void KDSoapClientInterfacePrivate::setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant> > &attributes)
+{
+    m_requestAttributes = attributes;
+}
+
 KDSoapHeaders KDSoapClientInterface::lastResponseHeaders() const
 {
     return d->m_lastResponseHeaders;
@@ -256,6 +256,11 @@ void KDSoapClientInterface::setStyle(KDSoapClientInterface::Style style)
 KDSoapClientInterface::Style KDSoapClientInterface::style() const
 {
     return d->m_style;
+}
+
+void KDSoapClientInterface::setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant> > &attributes)
+{
+    d->setRequestAttributes(attributes);
 }
 
 QNetworkCookieJar *KDSoapClientInterface::cookieJar() const

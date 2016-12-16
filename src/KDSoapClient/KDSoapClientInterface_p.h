@@ -26,6 +26,7 @@
 #include <QtNetwork/QSslConfiguration>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkCookieJar>
+#include <QtNetwork/QNetworkRequest>
 #include <QtCore/QXmlStreamWriter>
 
 #include "KDSoapClientInterface.h"
@@ -62,6 +63,7 @@ public:
     QSslConfiguration m_sslConfiguration;
     KDSoapSslHandler *m_sslHandler;
 #endif
+    QList<QPair<QNetworkRequest::Attribute, QVariant> > m_requestAttributes;
 
     QNetworkAccessManager *accessManager();
     QNetworkRequest prepareRequest(const QString &method, const QString &action);
@@ -70,6 +72,7 @@ public:
     void writeChildren(KDSoapNamespacePrefixes &namespacePrefixes, QXmlStreamWriter &writer, const KDSoapValueList &args, KDSoapMessage::Use use);
     void writeAttributes(QXmlStreamWriter &writer, const QList<KDSoapValue> &attributes);
     void setupReply(QNetworkReply *reply);
+    void setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant> >& attributes);
 
 private Q_SLOTS:
     void _kd_slotAuthenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator);

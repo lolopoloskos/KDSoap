@@ -90,12 +90,10 @@ void KDSoapPendingCall::Private::parseReply()
     }
     const bool doDebug = qgetenv("KDSOAP_DEBUG").toInt();
     QNetworkReply *reply = this->reply.data();
-#if QT_VERSION >= 0x040600
-    if (!reply->isFinished()) {
-        qWarning("KDSoap: Parsing reply before it finished!");
-        return;
-    }
-#endif
+	
+	if (!reply->isFinished()) {
+		qDebug() << "KDSoapPendingCall::parseReply: Reply is not finished. Bytes available" << reply->bytesAvailable() << "Error" << reply->error();
+	}
     parsed = true;
     if (reply->error()) {
         replyMessage.setFault(true);
@@ -103,12 +101,10 @@ void KDSoapPendingCall::Private::parseReply()
         replyMessage.addArgument(QString::fromLatin1("faultstring"), reply->errorString());
         if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 500) {
             if (doDebug) {
-                //qDebug() << reply->readAll();
-                qDebug() << reply->errorString();
+                qDebug() << "Status code:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() << "Error:" << reply->errorString();
             }
             return;
         }
-        // HTTP 500 is used to return faults, so parse the fault, below
     }
     const QByteArray data = reply->readAll();
     if (doDebug) {

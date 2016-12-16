@@ -25,6 +25,7 @@
 
 #include <QtCore/QtGlobal>
 #include <QtCore/QString>
+#include <QtNetwork/QNetworkRequest>
 #include "KDSoapMessage.h"
 #include "KDSoapPendingCall.h"
 
@@ -60,6 +61,7 @@ QT_END_NAMESPACE
  *  qDebug("%s", qPrintable(response.arguments()[0].value().toString()));
  * \endcode
  */
+class QNetworkAccessManager;
 class KDSOAP_EXPORT KDSoapClientInterface
 {
 public:
@@ -273,6 +275,12 @@ public:
      * \since 1.1
      */
     Style style() const;
+
+    /**
+     * Enable some attributes on QNetworkRequest
+     * If property is empty it means that we don't enable attributes for request
+     */
+    void setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant> > &attributes);
 
     /**
      * Returns the headers returned by the last synchronous call().
