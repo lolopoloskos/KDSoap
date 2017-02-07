@@ -78,7 +78,7 @@ public:
     /**
      * Returns the request data that was sended
      */
-    QByteArray &requestData() const;
+    const QByteArray &requestData() const;
 
     /**
      * Returns the response message sent by the server.

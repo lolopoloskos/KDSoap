@@ -62,7 +62,7 @@ bool KDSoapPendingCall::isFinished() const
 #endif
 }
 
-QByteArray &KDSoapPendingCall::requestData() const
+const QByteArray &KDSoapPendingCall::requestData() const
 {
     return d->buffer->data();
 }
