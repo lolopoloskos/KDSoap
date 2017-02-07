@@ -76,6 +76,11 @@ public:
     KDSoapPendingCall &operator=(const KDSoapPendingCall &other);
 
     /**
+     * Returns the request data that was sended
+     */
+    QByteArray &requestData() const;
+
+    /**
      * Returns the response message sent by the server.
      * Could either be a fault (see KDSoapMessage::isFault) or the actual response arguments.
      */

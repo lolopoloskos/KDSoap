@@ -72,7 +72,6 @@ public:
     void writeChildren(KDSoapNamespacePrefixes &namespacePrefixes, QXmlStreamWriter &writer, const KDSoapValueList &args, KDSoapMessage::Use use);
     void writeAttributes(QXmlStreamWriter &writer, const QList<KDSoapValue> &attributes);
     void setupReply(QNetworkReply *reply);
-    void setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant> >& attributes);
 
 private Q_SLOTS:
     void _kd_slotAuthenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator);

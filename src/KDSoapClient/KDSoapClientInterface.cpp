@@ -238,11 +238,6 @@ void KDSoapClientInterfacePrivate::setupReply(QNetworkReply *reply)
     }
 }
 
-void KDSoapClientInterfacePrivate::setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant> > &attributes)
-{
-    m_requestAttributes = attributes;
-}
-
 KDSoapHeaders KDSoapClientInterface::lastResponseHeaders() const
 {
     return d->m_lastResponseHeaders;
@@ -258,9 +253,9 @@ KDSoapClientInterface::Style KDSoapClientInterface::style() const
     return d->m_style;
 }
 
-void KDSoapClientInterface::setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant> > &attributes)
+void KDSoapClientInterface::setRequestAttributes(const QList<QPair<QNetworkRequest::Attribute, QVariant>> &attributes)
 {
-    d->setRequestAttributes(attributes);
+    d->m_requestAttributes = attributes;
 }
 
 QNetworkCookieJar *KDSoapClientInterface::cookieJar() const

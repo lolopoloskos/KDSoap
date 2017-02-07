@@ -62,6 +62,11 @@ bool KDSoapPendingCall::isFinished() const
 #endif
 }
 
+QByteArray &KDSoapPendingCall::requestData() const
+{
+    return d->buffer->data();
+}
+
 KDSoapMessage KDSoapPendingCall::returnMessage() const
 {
     d->parseReply();
@@ -88,9 +93,9 @@ void KDSoapPendingCall::Private::parseReply()
     if (parsed) {
         return;
     }
-    const bool doDebug = qgetenv("KDSOAP_DEBUG").toInt();
+
     QNetworkReply *reply = this->reply.data();
-	
+
 	if (!reply->isFinished()) {
 		qDebug() << "KDSoapPendingCall::parseReply: Reply is not finished. Bytes available" << reply->bytesAvailable() << "Error" << reply->error();
 	}
@@ -100,17 +105,12 @@ void KDSoapPendingCall::Private::parseReply()
         replyMessage.addArgument(QString::fromLatin1("faultcode"), QString::number(reply->error()));
         replyMessage.addArgument(QString::fromLatin1("faultstring"), reply->errorString());
         if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 500) {
-            if (doDebug) {
-                qDebug() << "Status code:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() << "Error:" << reply->errorString();
-            }
+            qDebug() << "Status code:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() << "Error:" << reply->errorString();
             return;
         }
     }
-    const QByteArray data = reply->readAll();
-    if (doDebug) {
-        qDebug() << data;
-    }
 
+    const QByteArray data = reply->readAll();
     if (!data.isEmpty()) {
         KDSoapMessageReader reader;
         reader.xmlToMessage(data, &replyMessage, 0, &replyHeaders);
