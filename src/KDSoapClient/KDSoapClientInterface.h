@@ -26,6 +26,7 @@
 #include <QtCore/QtGlobal>
 #include <QtCore/QString>
 #include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkConfiguration>
 #include "KDSoapMessage.h"
 #include "KDSoapPendingCall.h"
 
@@ -92,6 +93,20 @@ public:
      * \warning Any running asynchronous calls will be canceled.
      */
     ~KDSoapClientInterface();
+
+    /**
+     *
+     *
+    **/
+    void setNetworkConfiguration(const QNetworkConfiguration &configuration);
+    QNetworkConfiguration networkConfiguration() const;
+
+    /**
+     *
+     *
+    **/
+    void setNetworkAccessible(bool accessible);
+    bool networkAccessible() const;
 
     /**
      * Calls the method \p method on this interface and passes the arguments specified in \p message

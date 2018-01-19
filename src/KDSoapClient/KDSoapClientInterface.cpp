@@ -93,7 +93,7 @@ QNetworkAccessManager *KDSoapClientInterfacePrivate::accessManager()
 QNetworkRequest KDSoapClientInterfacePrivate::prepareRequest(const QString &method, const QString &action)
 {
     QNetworkRequest request(QUrl(this->m_endPoint));
-	
+
     for (QList<QPair<QNetworkRequest::Attribute, QVariant> >::const_iterator it = m_requestAttributes.constBegin(); it != m_requestAttributes.constEnd(); ++it) {
         request.setAttribute((*it).first, (*it).second);
     }
@@ -109,7 +109,7 @@ QNetworkRequest KDSoapClientInterfacePrivate::prepareRequest(const QString &meth
         }
         soapAction += method;
     }
-	
+
     QString soapHeader;
     if (m_version == KDSoapClientInterface::SOAP1_1) {
         soapHeader += QString::fromLatin1("text/xml;charset=utf-8");
@@ -143,6 +143,26 @@ QBuffer *KDSoapClientInterfacePrivate::prepareRequestBuffer(const QString &metho
     buffer->setData(data);
     buffer->open(QIODevice::ReadOnly);
     return buffer;
+}
+
+void KDSoapClientInterface::setNetworkAccessible(bool accessible)
+{
+    d->accessManager()->setNetworkAccessible(accessible ? QNetworkAccessManager::Accessible : QNetworkAccessManager::NotAccessible);
+}
+
+bool KDSoapClientInterface::networkAccessible() const
+{
+    return (d->accessManager()->networkAccessible() == QNetworkAccessManager::Accessible) ? true : false;
+}
+
+void KDSoapClientInterface::setNetworkConfiguration(const QNetworkConfiguration &configuration)
+{
+    d->accessManager()->setConfiguration(configuration);
+}
+
+QNetworkConfiguration KDSoapClientInterface::networkConfiguration() const
+{
+    return d->accessManager()->configuration();
 }
 
 KDSoapPendingCall KDSoapClientInterface::asyncCall(const QString &method, const KDSoapMessage &message, const QString &soapAction, const KDSoapHeaders &headers)
