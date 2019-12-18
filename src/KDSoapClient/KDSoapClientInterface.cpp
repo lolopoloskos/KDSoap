@@ -145,16 +145,6 @@ QBuffer *KDSoapClientInterfacePrivate::prepareRequestBuffer(const QString &metho
     return buffer;
 }
 
-void KDSoapClientInterface::setNetworkAccessible(bool accessible)
-{
-    d->accessManager()->setNetworkAccessible(accessible ? QNetworkAccessManager::Accessible : QNetworkAccessManager::NotAccessible);
-}
-
-bool KDSoapClientInterface::networkAccessible() const
-{
-    return (d->accessManager()->networkAccessible() == QNetworkAccessManager::Accessible) ? true : false;
-}
-
 void KDSoapClientInterface::setNetworkConfiguration(const QNetworkConfiguration &configuration)
 {
     d->accessManager()->setConfiguration(configuration);
@@ -165,11 +155,20 @@ QNetworkConfiguration KDSoapClientInterface::networkConfiguration() const
     return d->accessManager()->configuration();
 }
 
+void KDSoapClientInterface::setNetworkAccessible(bool accessible)
+{
+    d->accessManager()->setNetworkAccessible(accessible ? QNetworkAccessManager::Accessible : QNetworkAccessManager::NotAccessible);
+}
+
+bool KDSoapClientInterface::networkAccessible() const
+{
+    return (d->accessManager()->networkAccessible() == QNetworkAccessManager::Accessible) ? true : false;
+}
+
 KDSoapPendingCall KDSoapClientInterface::asyncCall(const QString &method, const KDSoapMessage &message, const QString &soapAction, const KDSoapHeaders &headers)
 {
     QBuffer *buffer = d->prepareRequestBuffer(method, message, headers);
     QNetworkRequest request = d->prepareRequest(method, soapAction);
-    //qDebug() << "post()";
     QNetworkReply *reply = d->accessManager()->post(request, buffer);
     d->setupReply(reply);
     return KDSoapPendingCall(reply, buffer);
