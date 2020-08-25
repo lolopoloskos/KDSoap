@@ -102,8 +102,13 @@ void KDSoapPendingCall::Private::parseReply()
     parsed = true;
     if (reply->error()) {
         replyMessage.setFault(true);
-        replyMessage.addArgument(QString::fromLatin1("faultcode"), QString::number(reply->error()));
-        replyMessage.addArgument(QString::fromLatin1("faultstring"), reply->errorString());
+        if (reply->error() == QNetworkReply::OperationCanceledError && reply->property("kdsoap_reply_timed_out").toBool()) {
+            replyMessage.addArgument(QString::fromLatin1("faultcode"), QString::number(QNetworkReply::TimeoutError));
+            replyMessage.addArgument(QString::fromLatin1("faultstring"), QLatin1String("Operation timed out"));
+        } else {
+            replyMessage.addArgument(QString::fromLatin1("faultcode"), QString::number(reply->error()));
+            replyMessage.addArgument(QString::fromLatin1("faultstring"), reply->errorString());
+        }
         if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 500) {
             qDebug() << "Status code:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() << "Error:" << reply->errorString();
             return;

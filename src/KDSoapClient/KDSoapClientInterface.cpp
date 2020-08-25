@@ -66,7 +66,8 @@ KDSoapClientInterfacePrivate::KDSoapClientInterfacePrivate()
       m_authentication(),
       m_version(KDSoapClientInterface::SOAP1_1),
       m_style(KDSoapClientInterface::RPCStyle),
-      m_ignoreSslErrors(false)
+      m_ignoreSslErrors(false),
+      m_timeout(30 * 60 * 1000) // 30 minutes, as documented
 {
 #ifndef QT_NO_OPENSSL
     m_sslHandler = 0;
@@ -240,6 +241,34 @@ void KDSoapClientInterface::ignoreSslErrors(const QList<QSslError> &errors)
 }
 #endif
 
+// Workaround for lack of connect-to-lambdas in Qt4
+// The pure Qt5 code could read like
+/*
+    QTimer *timeoutTimer = new QTimer(reply);
+    timeoutTimer->setSingleShot(true);
+    connect(timeoutTimer, &QTimer::timeout, reply, [reply]() { contents_of_the_slot });
+*/
+class TimeoutHandler : public QTimer // this way a single QObject is needed
+{
+    Q_OBJECT
+public:
+    TimeoutHandler(QNetworkReply *reply)
+        : QTimer(reply)
+    {
+        setSingleShot(true);
+    }
+public Q_SLOTS:
+    void replyTimeout()
+    {
+        QNetworkReply *reply = qobject_cast<QNetworkReply *>(parent());
+        Q_ASSERT(reply);
+
+        // contents_of_the_slot:
+        reply->setProperty("kdsoap_reply_timed_out", true); // see KDSoapPendingCall.cpp
+        reply->abort();
+    }
+};
+
 void KDSoapClientInterfacePrivate::setupReply(QNetworkReply *reply)
 {
     if (m_ignoreSslErrors) {
@@ -254,6 +283,11 @@ void KDSoapClientInterfacePrivate::setupReply(QNetworkReply *reply)
             new KDSoapReplySslHandler(reply, m_sslHandler);
         }
 #endif
+    }
+    if (m_timeout >= 0) {
+        TimeoutHandler *timeoutHandler = new TimeoutHandler(reply);
+        connect(timeoutHandler, SIGNAL(timeout()), timeoutHandler, SLOT(replyTimeout()));
+        timeoutHandler->start(m_timeout);
     }
 }
 
@@ -323,5 +357,20 @@ KDSoapSslHandler *KDSoapClientInterface::sslHandler() const
     return d->m_sslHandler;
 }
 #endif
+
+QNetworkAccessManager *KDSoapClientInterface::accessManager() const
+{
+    return d->accessManager();
+}
+
+int KDSoapClientInterface::timeout() const
+{
+    return d->m_timeout;
+}
+
+void KDSoapClientInterface::setTimeout(int msecs)
+{
+    d->m_timeout = msecs;
+}
 
 #include "moc_KDSoapClientInterface_p.cpp"

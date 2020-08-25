@@ -64,6 +64,7 @@ public:
     KDSoapSslHandler *m_sslHandler;
 #endif
     QList<QPair<QNetworkRequest::Attribute, QVariant> > m_requestAttributes;
+    int m_timeout;
 
     QNetworkAccessManager *accessManager();
     QNetworkRequest prepareRequest(const QString &method, const QString &action);
