@@ -35,6 +35,7 @@
 #include <QDebug>
 #include <QBuffer>
 #include <QNetworkProxy>
+#include <QTimer>
 
 KDSoapClientInterface::KDSoapClientInterface(const QString &endPoint, const QString &messageNamespace)
     : d(new KDSoapClientInterfacePrivate)
@@ -241,34 +242,6 @@ void KDSoapClientInterface::ignoreSslErrors(const QList<QSslError> &errors)
 }
 #endif
 
-// Workaround for lack of connect-to-lambdas in Qt4
-// The pure Qt5 code could read like
-/*
-    QTimer *timeoutTimer = new QTimer(reply);
-    timeoutTimer->setSingleShot(true);
-    connect(timeoutTimer, &QTimer::timeout, reply, [reply]() { contents_of_the_slot });
-*/
-class TimeoutHandler : public QTimer // this way a single QObject is needed
-{
-    Q_OBJECT
-public:
-    TimeoutHandler(QNetworkReply *reply)
-        : QTimer(reply)
-    {
-        setSingleShot(true);
-    }
-public Q_SLOTS:
-    void replyTimeout()
-    {
-        QNetworkReply *reply = qobject_cast<QNetworkReply *>(parent());
-        Q_ASSERT(reply);
-
-        // contents_of_the_slot:
-        reply->setProperty("kdsoap_reply_timed_out", true); // see KDSoapPendingCall.cpp
-        reply->abort();
-    }
-};
-
 void KDSoapClientInterfacePrivate::setupReply(QNetworkReply *reply)
 {
     if (m_ignoreSslErrors) {
@@ -285,9 +258,15 @@ void KDSoapClientInterfacePrivate::setupReply(QNetworkReply *reply)
 #endif
     }
     if (m_timeout >= 0) {
-        TimeoutHandler *timeoutHandler = new TimeoutHandler(reply);
-        connect(timeoutHandler, SIGNAL(timeout()), timeoutHandler, SLOT(replyTimeout()));
-        timeoutHandler->start(m_timeout);
+        QTimer *timeoutTimer = new QTimer(reply);
+        timeoutTimer->setSingleShot(true);
+        connect(timeoutTimer, &QTimer::timeout, reply, [reply]()
+        {
+            if (reply != nullptr) {
+                reply->setProperty("kdsoap_reply_timed_out", true); // see KDSoapPendingCall.cpp
+                reply->abort();
+            }
+        });
     }
 }
 
