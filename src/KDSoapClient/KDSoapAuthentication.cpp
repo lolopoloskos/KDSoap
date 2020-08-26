@@ -81,7 +81,11 @@ bool KDSoapAuthentication::hasAuth() const
 
 void KDSoapAuthentication::handleAuthenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator)
 {
-    //qDebug() << "handleAuthenticationRequired" << reply << reply->url() << "realm=" << authenticator->realm();
+    const QByteArray doDebug = qgetenv("KDSOAP_DEBUG");
+    if (!doDebug.trimmed().isEmpty() || doDebug == "1") {
+        qDebug() << "KDSoap: handleAuthenticationRequired" << reply << reply->url() << "realm=" << authenticator->realm();
+    }
+    // qDebug() << "handleAuthenticationRequired" << reply << reply->url() << "realm=" << authenticator->realm();
     // Only proceed if
     // 1) we have some authentication to offer
     // 2) we didn't try once already (unittest: BuiltinHttpTest::testAsyncCallRefusedAuth)
@@ -89,8 +93,5 @@ void KDSoapAuthentication::handleAuthenticationRequired(QNetworkReply *reply, QA
         authenticator->setUser(d->user);
         authenticator->setPassword(d->password);
         reply->setProperty("authAdded", true);
-    } else {
-        // protected... reply->setError(QNetworkReply::AuthenticationRequiredError, QString());
-        reply->abort();
     }
 }

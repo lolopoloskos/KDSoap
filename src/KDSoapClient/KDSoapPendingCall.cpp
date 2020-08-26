@@ -127,7 +127,7 @@ void KDSoapPendingCall::Private::parseReply()
     }
 
     const QByteArray doDebug = qgetenv("KDSOAP_DEBUG");
-    if (doDebug.trimmed().isEmpty() || doDebug == "0") {
+    if (!doDebug.trimmed().isEmpty() || doDebug == "1") {
         qDebug() << "KDSoap: Reply parsed";
     }
 }
