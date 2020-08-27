@@ -147,6 +147,7 @@ QBuffer *KDSoapClientInterfacePrivate::prepareRequestBuffer(const QString &metho
     return buffer;
 }
 
+
 void KDSoapClientInterface::setNetworkConfiguration(const QNetworkConfiguration &configuration)
 {
     d->accessManager()->setConfiguration(configuration);
@@ -202,6 +203,11 @@ void KDSoapClientInterface::callNoReply(const QString &method, const KDSoapMessa
     QNetworkReply *reply = d->accessManager()->post(request, buffer);
     d->setupReply(reply);
     QObject::connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
+}
+
+void KDSoapClientInterfacePrivate::_kd_slotNetworkError(QNetworkReply::NetworkError code)
+{
+    qDebug() << "KDSoap: Error" << code;
 }
 
 void KDSoapClientInterfacePrivate::_kd_slotAuthenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator)
@@ -267,6 +273,7 @@ void KDSoapClientInterfacePrivate::setupReply(QNetworkReply *reply)
                 reply->abort();
             }
         });
+        timeoutTimer->start(m_timeout);
     }
 }
 

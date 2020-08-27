@@ -27,6 +27,7 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkCookieJar>
 #include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
 #include <QtCore/QXmlStreamWriter>
 
 #include "KDSoapClientInterface.h"
@@ -75,6 +76,7 @@ public:
     void setupReply(QNetworkReply *reply);
 
 private Q_SLOTS:
+    void _kd_slotNetworkError(QNetworkReply::NetworkError code);
     void _kd_slotAuthenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator);
 };
 
