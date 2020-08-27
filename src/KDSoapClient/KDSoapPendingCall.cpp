@@ -101,20 +101,12 @@ void KDSoapPendingCall::Private::parseReply()
     }
 
     QNetworkReply *reply = this->reply.data();
-
 	if (!reply->isFinished()) {
 		qWarning("KDSoap: Parsing reply before it finished!");
         return;
 	}
 
     parsed = true;
-
-    const QByteArray data = reply->isOpen() ? reply->readAll() : QByteArray();
-    if (!data.isEmpty()) {
-        KDSoapMessageReader reader;
-        reader.xmlToMessage(data, &replyMessage, 0, &replyHeaders);
-    }
-
     if (reply->error()) {
         replyMessage.setFault(true);
         if (reply->error() == QNetworkReply::OperationCanceledError && reply->property("kdsoap_reply_timed_out").toBool()) {
@@ -124,10 +116,14 @@ void KDSoapPendingCall::Private::parseReply()
             replyMessage.addArgument(QString::fromLatin1("faultcode"), QString::number(reply->error()));
             replyMessage.addArgument(QString::fromLatin1("faultstring"), reply->errorString());
         }
+        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 500) {
+            return;
+        }
     }
 
-    const QByteArray doDebug = qgetenv("KDSOAP_DEBUG");
-    if (!doDebug.trimmed().isEmpty() || doDebug == "1") {
-        qDebug() << "KDSoap: Reply parsed";
+    const QByteArray data = reply->isOpen() ? reply->readAll() : QByteArray();
+    if (!data.isEmpty()) {
+        KDSoapMessageReader reader;
+        reader.xmlToMessage(data, &replyMessage, 0, &replyHeaders);
     }
 }
